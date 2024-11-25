@@ -1,0 +1,18 @@
+.contact {
+  h1 {
+    text-align: center;
+  }
+  .contact-form-wrapper {
+    // border: 2px solid rgb(32, 30, 30);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    .contact-form {
+      width: 70%;
+    }
+    Button {
+      margin: 20px 0px 0px 0px;
+    }
+  }
+}

@@ -1,0 +1,93 @@
+// Navbar.scss
+.app-bar {
+  background-color: #333;
+  padding: 10px;
+
+  .logo {
+    font-size: 1.2rem;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s;
+    padding-right: 15px;
+    &:hover {
+      color: #f5f5f5;
+    }
+    @media (max-width: 768px) {
+      display: none; // Shows the menu icon on mobile
+    }
+  }
+
+  // Mobile Menu Icon (Hamburger)
+  .menu-icon {
+    display: none; // Hides the menu icon by default
+
+    @media (max-width: 768px) {
+      display: block; // Shows the menu icon on mobile
+    }
+  }
+
+  // Navigation Links (on Desktop)
+  .nav-links {
+    display: flex;
+    gap: 1.5rem;
+
+    a {
+      text-decoration: none;
+      color: white;
+      transition: color 0.3s;
+
+      &:hover {
+        color: #ddd;
+      }
+    }
+    @media (max-width: 768px) {
+      display: none; // Shows the menu icon on mobile
+    }
+  }
+
+  // Mobile Nav Menu (Dropdown)
+  .mobile-menu {
+    display: none; // Hide by default
+
+    @media (max-width: 768px) {
+      display: block; // Show the dropdown menu on mobile
+    }
+
+    .menu-item {
+      padding: 10px;
+      background-color: #333;
+      color: white;
+      text-align: left;
+
+      &:hover {
+        background-color: #555;
+      }
+    }
+  }
+
+  // Avatar Section
+  .user-avatar {
+    display: flex;
+    align-items: center;
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+    }
+  }
+
+  // Dropdown menu for user settings
+  .settings-menu {
+    background-color: #fff;
+    color: #333;
+
+    .menu-item {
+      padding: 10px;
+
+      &:hover {
+        background-color: #eee;
+      }
+    }
+  }
+}
