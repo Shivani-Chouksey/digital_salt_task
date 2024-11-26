@@ -11,7 +11,7 @@ interface PaginatedResponse<T> {
   }
   
 
-const usePaginatedFetch = <T = any>(urlEndpoint:string,limit:number=5,skip:number=0) => {
+const usePaginatedFetch = <T = any>(urlEndpoint:string,limit:number=5,skip:number=0, token?: string) => {
   const [data, setData] = useState<PaginatedResponse<T> | null>(null); // Use ApiResponse or null
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,8 +33,7 @@ const usePaginatedFetch = <T = any>(urlEndpoint:string,limit:number=5,skip:numbe
               params,
               headers: {
                 'Content-Type': 'application/json',
-                // ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-                // ...config.headers
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
               },
             }
           );
@@ -49,7 +48,7 @@ const usePaginatedFetch = <T = any>(urlEndpoint:string,limit:number=5,skip:numbe
         fetchPaginatedData();
       }
   
-  }, [urlEndpoint, limit, skip,]);
+  }, [urlEndpoint, limit, skip,token]);
 
   return { data, loading, error };
 };

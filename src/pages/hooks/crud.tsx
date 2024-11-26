@@ -1,4 +1,4 @@
-import React, { ReactChild, useState } from "react";
+import React, { useEffect, useState } from "react";
 import useFetchList from "../../hooks/crud/use-fetch-list";
 import useFetchByID from "../../hooks/crud/use-fetch-by-id";
 import {
@@ -24,6 +24,10 @@ import {
 import useCreateResource from "../../hooks/crud/use-create-resource";
 import useUpdateResource from "../../hooks/crud/use-update-resource";
 import useDeleteResource from "../../hooks/crud/use-delete-resource";
+import { useAppDispatch } from "../../redux/store";
+import { addToken } from "../../redux/slices/user-slice";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/root-reducer";
 
 type UserType = {
   username: string | null;
@@ -35,24 +39,40 @@ function Crud() {
   const [updateUser, setUpdateUser] = useState<UserType>({ username: null });
   const [addUserError, setAddUserError] = useState<string | null>(null);
   const [showUpdateForm, setShowUpdateForm] = useState<boolean>(false);
+  const dispatch = useAppDispatch();
+  const token = useSelector((state: RootState) => state.usersList.token);
 
   //use fetch list  Hook---------------
-  const { data, loading, error } = useFetchList("users");
+  const { data, loading, error } = useFetchList("users", token);
 
   //use fetch by Id Hook---------------
-  const {data: userDetails,loading: userLoading, error: userError} = useFetchByID("users", selectedUserId!);
-  const detailViewHandler = (id: string) => {
+  const {
+    fetchDataById,
+    data: userDetails,
+    loading: userLoading,
+    error: userError,
+  } = useFetchByID();
+  const detailViewHandler = async (id: string) => {
     // Toggle the selected user details view (if the same user is clicked again, it hides the details)
     if (selectedUserId === id) {
       setSelectedUserId(null); // Deselect the user if clicked again
     } else {
       setSelectedUserId(id); // Set the selected user ID to show details
     }
+
+    // Fetch details if ID is provided
+    if (id) {
+      await fetchDataById("users", id, token);
+    }
   };
 
-
   //use create Hook---------------
-  const {createResource,loading: addUserLoading,error: createError,success} = useCreateResource();
+  const {
+    createResource,
+    loading: addUserLoading,
+    error: createError,
+    success,
+  } = useCreateResource();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user.username || user.username.trim() === "") {
@@ -61,7 +81,7 @@ function Crud() {
     }
     setAddUserError(null); // Clear any previous error
     try {
-      const responseData = await createResource("users/add", user); // Call the hook's function
+      const responseData = await createResource("users/add", user, token); // Call the hook's function
       if (success) {
         setUser({
           username: null,
@@ -73,26 +93,39 @@ function Crud() {
     }
   };
 
-
   const onclickUpdateHandler = () => {
     setShowUpdateForm(true);
   };
 
   //use update Hook---------------
-  const {updateResource,loading: updateLoading,error: updateError,success: updateSuccess} = useUpdateResource();
+  const {
+    updateResource,
+    loading: updateLoading,
+    error: updateError,
+    success: updateSuccess,
+  } = useUpdateResource();
   const updateHandler = async (e: React.FormEvent, id: string) => {
     e.preventDefault();
-    const response = await updateResource("users", updateUser, id);
+    const response = await updateResource("users", updateUser, id, token);
     console.log("response while updating", response);
   };
 
-
   //use delete hook---------------
-  const {deleteResource,loading: deleteLoading,error: deleteError,success: deleteSuccess} = useDeleteResource();
-  const deleteHandler=async(id:string)=>{
-         await deleteResource("users",id)
-        }
+  const {
+    deleteResource,
+    loading: deleteLoading,
+    error: deleteError,
+    success: deleteSuccess,
+  } = useDeleteResource();
+  const deleteHandler = async (id: string) => {
+    await deleteResource("users", id, token);
+  };
 
+  //set token inside redux
+
+  useEffect(() => {
+    dispatch(addToken("authtokenvalue"));
+  }, []);
   return (
     <>
       <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mb: 4 }}>
@@ -249,23 +282,23 @@ function Crud() {
                             Edit
                           </Button>
                           <Button
-                          style={{marginLeft:"10px"}}
+                            style={{ marginLeft: "10px" }}
                             variant="contained"
-                            onClick={()=>deleteHandler(userDetails.id)}
+                            onClick={() => deleteHandler(userDetails.id)}
                           >
-                           {deleteLoading?"Deleting....":"Delete"}
+                            {deleteLoading ? "Deleting...." : "Delete"}
                           </Button>
                           {deleteError && (
-                                <Alert severity="error" sx={{ my: 2 }}>
-                                  {deleteError}
-                                </Alert>
-                              )}
+                            <Alert severity="error" sx={{ my: 2 }}>
+                              {deleteError}
+                            </Alert>
+                          )}
 
-                              {deleteSuccess && (
-                                <Alert severity="success" sx={{ my: 2 }}>
-                                  {deleteSuccess}
-                                </Alert>
-                              )}
+                          {deleteSuccess && (
+                            <Alert severity="success" sx={{ my: 2 }}>
+                              {deleteSuccess}
+                            </Alert>
+                          )}
                           {showUpdateForm && (
                             <Box
                               component="form"

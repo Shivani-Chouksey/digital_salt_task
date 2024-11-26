@@ -14,7 +14,7 @@ const useCreateResource = () => {
 
   const baseUrl = import.meta.env.VITE_BASE_URL;
 
-  const createResource = async (urlEndpoint: string, data: any) => {
+  const createResource = async (urlEndpoint: string, data: any,token:string) => {
     setLoading(true);
     try {
       const response = await axios.post<ApiResponse>(
@@ -22,7 +22,8 @@ const useCreateResource = () => {
         data,
         {
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
           },
         }
       );

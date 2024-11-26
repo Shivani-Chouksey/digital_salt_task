@@ -7,7 +7,7 @@ type ApiResponse ={
 }
 
 
-const useFetchList = (urlEndpoint: string) => {
+const useFetchList = (urlEndpoint: string,token:string) => {
   const [data, setData] = useState<ApiResponse | null>(null); // Use ApiResponse or null
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +16,12 @@ const useFetchList = (urlEndpoint: string) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<ApiResponse>(`${baseUrl}/${urlEndpoint}`); // Type the response
+        const response = await axios.get<ApiResponse>(`${baseUrl}/${urlEndpoint}`,{
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          },
+        }); // Type the response
         setData(response.data); // Assuming response.data is an ApiResponse
       } catch (err: any) {
         setError(err.message || "An error occurred while fetching data.");

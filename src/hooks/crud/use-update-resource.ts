@@ -14,7 +14,7 @@ const useUpdateResource = () => {
 
   const baseUrl = import.meta.env.VITE_BASE_URL;
 
-  const updateResource = async (urlEndpoint: string, data: any, id: string) => {
+  const updateResource = async (urlEndpoint: string, data: any, id: string,token:string) => {
     setLoading(true);
     try {
       const response = await axios.patch<ApiResponse>(
@@ -22,7 +22,8 @@ const useUpdateResource = () => {
         data,
         {
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
           },
         }
       );

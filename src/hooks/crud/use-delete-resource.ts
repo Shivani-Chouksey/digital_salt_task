@@ -13,11 +13,17 @@ const useDeleteResource = () => {
 
   const baseUrl = import.meta.env.VITE_BASE_URL;
 
-  const deleteResource = async (urlEndpoint: string, id: string) => {
+  const deleteResource = async (urlEndpoint: string, id: string,token:string) => {
     setLoading(true);
     try {
       const response = await axios.delete<ApiResponse>(
-        `${baseUrl}/${urlEndpoint}/${id}`
+        `${baseUrl}/${urlEndpoint}/${id}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          },
+        }
       );
       if (response.status === 200) {
         setSuccess(response.data.message || "Resource Deleted successfully.");
