@@ -128,7 +128,7 @@ function Crud() {
   }, []);
   return (
     <>
-      <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mb: 4 }}>
+      <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mb: 4 }} style={{padding:"10px"}}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={9}>
             <TextField
@@ -162,7 +162,7 @@ function Crud() {
                 textTransform: "none",
               }}
             >
-              Add Task
+              Add User
             </Button>
             {/* Show user details error state */}
             {createError && (
@@ -311,7 +311,7 @@ function Crud() {
                                 <Grid item xs={12} sm={9}>
                                   <TextField
                                     id="user"
-                                    label="Edit User"
+                                    label="Edit User Name"
                                     variant="outlined"
                                     name="userName"
                                     value={updateUser.username}

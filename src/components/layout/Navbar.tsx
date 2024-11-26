@@ -14,7 +14,7 @@ import AdbIcon from "@mui/icons-material/Adb";
 import { Link, useNavigate } from "react-router-dom";
 import "../../styles/navbar.scss";
 
-const pages = ["About", "Redux ", "Zustand"];
+const pages = ["About", "Redux", "Zustand"];
 const hookName = [
   " useFetchList",
   "useFetchById",
@@ -59,6 +59,16 @@ function ResponsiveAppBar() {
         <Toolbar disableGutters>
           <Link to="/" className="logo">
             React Query
+          </Link>
+          <Link
+            to="/login"
+            style={{
+              textDecoration: "none",
+              color: "white",
+              marginRight: "10px",
+            }}
+          >
+           LOGIN
           </Link>
 
           {/* Mobile menu icon */}
@@ -121,7 +131,7 @@ function ResponsiveAppBar() {
             ))}
           </Box>
 
-          {/* User profile section */}
+          {/* Custom Hooks section */}
           <Box sx={{ flexGrow: 0 }}>
             <Tooltip title="Open hookName">
               <p onClick={handleOpenUserMenu}> Custom Hooks</p>

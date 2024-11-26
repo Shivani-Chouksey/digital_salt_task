@@ -13,11 +13,13 @@ import Home from "./pages/home";
 import Task from "./pages/task";
 import Crud from "./pages/hooks/crud";
 import CurdPaginated from "./pages/hooks/crud-paginated";
+import Login from "./pages/auth/login";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<RootLayout />}>
       <Route index element={<Home />} />
+      <Route path="login" element={<Login />} />
       <Route path="about" element={<About />} />
       <Route path="redux" element={<Contact />} />
       <Route path="zustand" element={<Task />} />
