@@ -12,6 +12,7 @@ import About from "./pages/about";
 import Home from "./pages/home";
 import Task from "./pages/task";
 import Crud from "./pages/hooks/crud";
+import CurdPaginated from "./pages/hooks/crud-paginated";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -22,6 +23,7 @@ const router = createBrowserRouter(
       <Route path="zustand" element={<Task />} />
       <Route path="products/:id" element={<ProductDetail />} />
       <Route path="crud" element={<Crud />} />
+      <Route path="crud-paginated" element={<CurdPaginated />} />
 
     </Route>
   )

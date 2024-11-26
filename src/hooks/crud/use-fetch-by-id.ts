@@ -1,13 +1,11 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 
-// Define the type of response expected from the API
-type ApiResponse ={
-  users: any[];
-}
 
+// Define a type for the response data
+type ApiResponse =any
 
-const useFetchList = (urlEndpoint: string) => {
+const useFetchByID = (urlEndpoint:string,id:string) => {
   const [data, setData] = useState<ApiResponse | null>(null); // Use ApiResponse or null
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +14,7 @@ const useFetchList = (urlEndpoint: string) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<ApiResponse>(`${baseUrl}/${urlEndpoint}`); // Type the response
+        const response = await axios.get<ApiResponse>(`${baseUrl}/${urlEndpoint}/${id}`); // Type the response
         setData(response.data); // Assuming response.data is an ApiResponse
       } catch (err: any) {
         setError(err.message || "An error occurred while fetching data.");
@@ -26,9 +24,9 @@ const useFetchList = (urlEndpoint: string) => {
     };
 
     fetchData();
-  }, [urlEndpoint]);
+  }, [urlEndpoint,id]);
 
   return { data, loading, error };
 };
 
-export default useFetchList;
+export default useFetchByID;

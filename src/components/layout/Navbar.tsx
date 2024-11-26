@@ -12,15 +12,26 @@ import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 import AdbIcon from "@mui/icons-material/Adb";
 import { Link, useNavigate } from "react-router-dom";
-import  "../../styles/navbar.scss"
+import "../../styles/navbar.scss";
 
-const pages = ["About", "Redux ","Zustand"];
-const settings = [" useFetchList", "useFetchById", "useCreateResource", "useUpdateResource",'useDeleteResource','usePaginatedFetch'];
+const pages = ["About", "Redux ", "Zustand"];
+const hookName = [
+  " useFetchList",
+  "useFetchById",
+  "useCreateResource",
+  "useUpdateResource",
+  "useDeleteResource",
+  "usePaginatedFetch",
+];
 
 function ResponsiveAppBar() {
-  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
-  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
-const navigate= useNavigate();
+  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
+    null
+  );
+  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(
+    null
+  );
+  const navigate = useNavigate();
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
   };
@@ -33,8 +44,12 @@ const navigate= useNavigate();
     setAnchorElNav(null);
   };
 
-  const handleCloseUserMenu = () => {
-    navigate("/crud")
+  const handleCloseUserMenu = (hookName: string) => {
+    if (hookName === "usePaginatedFetch") {
+      navigate("/crud-paginated");
+    } else {
+      navigate("/crud");
+    }
     setAnchorElUser(null);
   };
 
@@ -81,13 +96,14 @@ const navigate= useNavigate();
                   className="menu-item"
                 >
                   <Typography>
-                    <Link to={`/${page.toLowerCase()}`}>{page.toUpperCase()}</Link>
+                    <Link to={`/${page.toLowerCase()}`}>
+                      {page.toUpperCase()}
+                    </Link>
                   </Typography>
                 </MenuItem>
               ))}
             </Menu>
           </Box>
-
 
           {/* Desktop menu links */}
           <Box
@@ -107,8 +123,8 @@ const navigate= useNavigate();
 
           {/* User profile section */}
           <Box sx={{ flexGrow: 0 }}>
-            <Tooltip title="Open settings">
-             <p onClick={handleOpenUserMenu} > Custom Hooks</p>
+            <Tooltip title="Open hookName">
+              <p onClick={handleOpenUserMenu}> Custom Hooks</p>
               {/* <IconButton  sx={{ p: 0 }}>
                 <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
               </IconButton> */}
@@ -128,11 +144,11 @@ const navigate= useNavigate();
               }}
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
-              className="settings-menu"
+              className="hookName-menu"
             >
-              {settings.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                  <Typography>{setting}</Typography>
+              {hookName.map((name) => (
+                <MenuItem key={name} onClick={() => handleCloseUserMenu(name)}>
+                  <Typography>{name}</Typography>
                 </MenuItem>
               ))}
             </Menu>
