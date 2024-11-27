@@ -18,6 +18,7 @@ import React, { useState } from "react";
 import usePaginatedFetch from "../../hooks/crud/use-paginated-fetch";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/root-reducer";
+import UserType from "../../utils/types/user-detail-type";
 
 function CurdPaginated() {
   const [page, setPage] = useState(1);
@@ -26,13 +27,27 @@ function CurdPaginated() {
   const token = useSelector((state: RootState) => state.usersList.token);
 
   // Fetch data using the hook
-  const { data, loading, error } = usePaginatedFetch<any>(
-    "users",
+  // const { data, loading, error } = usePaginatedFetch<any>(
+  //   "users",
+  //   limit,
+  //   skip,
+  //   token
+  // );
+
+  //  const { data, error, isLoading, isError, isSuccess, refetch } = usePaginatedFetch(
+  //   "users", // Replace with your API endpoint
+  //   limit,
+  //   skip,
+  //   token
+  // );
+  const { data, isLoading, error } = usePaginatedFetch('users', {
     limit,
     skip,
     token
-  );
+  });
 
+  console.log("data",data);
+  
   const handlePageChange = (
     event: React.ChangeEvent<unknown>,
     value: number
@@ -53,7 +68,7 @@ function CurdPaginated() {
       </Typography>
 
       {/* Loading State */}
-      {loading && (
+      {isLoading && (
         <Box sx={{ textAlign: "center", my: 4 }}>
           <CircularProgress />
           <Typography variant="body2" sx={{ mt: 2 }}>
@@ -65,12 +80,12 @@ function CurdPaginated() {
       {/* Error State */}
       {error && (
         <Alert severity="error" sx={{ my: 2 }}>
-          {error}
+          {error.message}
         </Alert>
       )}
 
       {/* No Data State */}
-      {!loading && !error && (!data || data.users.length === 0) && (
+      {!isLoading && !error && (!data || data.users.length === 0) && (
         <Typography
           variant="body1"
           color="text.secondary"
@@ -82,7 +97,7 @@ function CurdPaginated() {
       )}
 
       {/* Data Display */}
-      {!loading && !error && data && data.users.length > 0 && (
+      {!isLoading && !error && data && data.users.length > 0 && (
         <>
           <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
             <List>

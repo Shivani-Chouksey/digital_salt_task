@@ -1,39 +1,58 @@
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import UserType from "../../utils/types/user-detail-type";
 
-// Define the type of response expected from the API
-type ApiResponse ={
-  users: any[];
-}
+type ApiResponse = {
+  users: UserType[];
+};
 
+// Generic error type
+export type FetchError = Error & { status?: number };
 
-const useFetchList = (urlEndpoint: string,token:string) => {
-  const [data, setData] = useState<ApiResponse | null>(null); // Use ApiResponse or null
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+type UseFetchListParams = {
+  endpoint: string;
+  token?: string;
+  enabled?: boolean;
+};
+
+const useFetchList = ({
+  endpoint,
+  token,
+  enabled = true,
+}: UseFetchListParams) => {
   const baseUrl = import.meta.env.VITE_BASE_URL;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get<ApiResponse>(`${baseUrl}/${urlEndpoint}`,{
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-          },
-        }); // Type the response
-        setData(response.data); // Assuming response.data is an ApiResponse
-      } catch (err: any) {
-        setError(err.message || "An error occurred while fetching data.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get<ApiResponse>(baseUrl + endpoint, {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      const fetchError: FetchError = new Error(
+        error.response?.data?.message ||
+          error.message ||
+          "An error occurred while fetching data"
+      );
+      fetchError.status = error.response?.status;
+      throw fetchError;
+    }
+  };
 
-    fetchData();
-  }, [urlEndpoint]);
-
-  return { data, loading, error };
+  return useQuery<ApiResponse, FetchError>({
+    queryKey: ["users", { endpoint }],
+    queryFn: fetchUsers,
+    enabled,
+    // Stale time of 5 minutes - data doesn't need frequent updates
+    staleTime: 1000 * 60 * 5,
+    // Keep previous data while refetching
+    // keepPreviousData: true,
+    // Retry failed requests once
+    retry: 1,
+  });
 };
 
 export default useFetchList;

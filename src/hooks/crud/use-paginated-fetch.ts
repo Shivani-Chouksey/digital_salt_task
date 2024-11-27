@@ -1,56 +1,56 @@
-import axios, { AxiosResponse } from "axios";
-import { useEffect, useState } from "react";
+import axios, { AxiosError } from "axios";
+import { useQuery } from "@tanstack/react-query";
+import UserType from "../../utils/types/user-detail-type";
 
+type PaginatedResponse = {
+  users: UserType[];
+  total: number;
+  limit: number;
+  skip: number;
+};
 
-// Generic type for paginated response
-interface PaginatedResponse<T> {
-    users: T[];
-    total: number;
-    limit: number;
-    skip: number;
-  }
-  
+type FetchOptions = {
+  limit?: number;
+  skip?: number;
+  token?: string;
+};
 
-const usePaginatedFetch = <T = any>(urlEndpoint:string,limit:number=5,skip:number=0, token?: string) => {
-  const [data, setData] = useState<PaginatedResponse<T> | null>(null); // Use ApiResponse or null
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+const fetchPaginatedData = async ({
+  urlEndpoint,
+  limit = 5,
+  skip = 0,
+  token,
+}: { urlEndpoint: string } & FetchOptions): Promise<PaginatedResponse> => {
   const baseUrl = import.meta.env.VITE_BASE_URL;
 
-  useEffect(() => {
-    const fetchPaginatedData = async () => {
-      try {
-         // Construct query parameters
-         const params = new URLSearchParams({
-            limit: limit.toString(),
-            skip: skip.toString(),
-          });
-
-          // Comprehensive axios configuration
-        const response: AxiosResponse<PaginatedResponse<T>> = await axios.get(
-            `${baseUrl}/${urlEndpoint}`, 
-            {
-              params,
-              headers: {
-                'Content-Type': 'application/json',
-                ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-              },
-            }
-          );
-        setData(response.data); // Assuming response.data is an ApiResponse
-      } catch (err: any) {
-        setError(err.message || "An error occurred while fetching data.");
-      } finally {
-        setLoading(false);
+  try {
+    const { data } = await axios.get<PaginatedResponse>(
+      `${baseUrl}/${urlEndpoint}`,
+      {
+        params: { limit, skip },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       }
-    };
-    if (urlEndpoint) {
-        fetchPaginatedData();
-      }
-  
-  }, [urlEndpoint, limit, skip,token]);
+    );
+    return data;
+  } catch (error) {
+    throw error instanceof AxiosError
+      ? error
+      : new Error("An unexpected error occurred");
+  }
+};
 
-  return { data, loading, error };
+const usePaginatedFetch = (urlEndpoint: string, options: FetchOptions = {}) => {
+  const { limit = 5, skip = 0, token } = options;
+
+  return useQuery<PaginatedResponse, AxiosError>({
+    queryKey: ["paginatedData", urlEndpoint, limit, skip],
+    queryFn: () => fetchPaginatedData({ urlEndpoint, limit, skip, token }),
+    enabled: !!urlEndpoint,
+    // keepPreviousData: true
+  });
 };
 
 export default usePaginatedFetch;

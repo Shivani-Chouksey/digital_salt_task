@@ -34,7 +34,7 @@ type UserType = {
 };
 
 function Crud() {
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [user, setUser] = useState<UserType>({ username: null });
   const [updateUser, setUpdateUser] = useState<UserType>({ username: null });
   const [addUserError, setAddUserError] = useState<string | null>(null);
@@ -43,36 +43,50 @@ function Crud() {
   const token = useSelector((state: RootState) => state.usersList.token);
 
   //use fetch list  Hook---------------
-  const { data, loading, error } = useFetchList("users", token);
-
-  //use fetch by Id Hook---------------
   const {
-    fetchDataById,
+    data,
+    isLoading,
+    isError,
+    error,
+    // isPreviousData
+  } = useFetchList({
+    endpoint: "/users",
+    token,
+    // Only fetch if token exists
+    enabled: !!token,
+  });
+
+  // React Query hook for fetching user details
+  const { useDetailFetchQuery } = useFetchByID();
+  const {
     data: userDetails,
-    loading: userLoading,
-    error: userError,
-  } = useFetchByID();
-  const detailViewHandler = async (id: string) => {
-    // Toggle the selected user details view (if the same user is clicked again, it hides the details)
+    isLoading: isDetailFetchLoading,
+    isError: isDetailFetchError,
+    error: isDetailFetchErrorDetail,
+  } = useDetailFetchQuery(
+    "users", // Adjust URL endpoint accordingly
+    selectedUserId,
+    token,
+    { enabled: !!selectedUserId } // Only fetch when a user is selected
+  );
+
+  const detailViewHandler = async (id: number) => {
     if (selectedUserId === id) {
       setSelectedUserId(null); // Deselect the user if clicked again
     } else {
       setSelectedUserId(id); // Set the selected user ID to show details
     }
-
-    // Fetch details if ID is provided
-    if (id) {
-      await fetchDataById("users", id, token);
-    }
   };
 
   //use create Hook---------------
   const {
-    createResource,
-    loading: addUserLoading,
-    error: createError,
-    success,
+    mutateAsync: createResource, // Async function for creating resource
+    isCreateResponseError,
+    isCreateResponseLoading,
+    isCreateResponseSuccess,
+    createResponseMessage,
   } = useCreateResource();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user.username || user.username.trim() === "") {
@@ -81,8 +95,12 @@ function Crud() {
     }
     setAddUserError(null); // Clear any previous error
     try {
-      const responseData = await createResource("users/add", user, token); // Call the hook's function
-      if (success) {
+      await createResource({
+        urlEndpoint: "users/add", // Example endpoint
+        data: user, // Your form data
+        token,
+      }); // Call the hook's function
+      if (isCreateResponseSuccess) {
         setUser({
           username: null,
         });
@@ -99,26 +117,42 @@ function Crud() {
 
   //use update Hook---------------
   const {
-    updateResource,
-    loading: updateLoading,
-    error: updateError,
-    success: updateSuccess,
+    mutateAsync: updateResource,
+    updateResponseMessage,
+    isUpdateError,
+    isUpdateLoading,
+    isUpdateSuccess,
   } = useUpdateResource();
-  const updateHandler = async (e: React.FormEvent, id: string) => {
+  const updateHandler = async (e: React.FormEvent, id: number) => {
     e.preventDefault();
-    const response = await updateResource("users", updateUser, id, token);
-    console.log("response while updating", response);
+    try {
+      await updateResource({
+        urlEndpoint: "users", // Replace with actual endpoint
+        data: updateUser, // The data to update
+        id, // ID of the resource to update
+        token, // Authorization token
+      });
+    } catch (err) {
+      console.error("Update failed:", err);
+    }
   };
 
   //use delete hook---------------
+
   const {
-    deleteResource,
-    loading: deleteLoading,
-    error: deleteError,
-    success: deleteSuccess,
+    mutateAsync: deleteResource, // Async function for deletion
+    deleteReponseMessage,
+    isDeleteReponseError,
+    isDeleteReponseLoading,
+    isDeleteReponseSuccess,
   } = useDeleteResource();
-  const deleteHandler = async (id: string) => {
-    await deleteResource("users", id, token);
+
+  const deleteHandler = async (id: number) => {
+    await deleteResource({
+      urlEndpoint: "users",
+      id,
+      token,
+    });
   };
 
   //set token inside redux
@@ -128,7 +162,13 @@ function Crud() {
   }, []);
   return (
     <>
-      <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mb: 4 }} style={{padding:"10px"}}>
+      <Box
+        component="form"
+        onSubmit={handleSubmit}
+        noValidate
+        sx={{ mb: 4 }}
+        style={{ padding: "10px" }}
+      >
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={9}>
             <TextField
@@ -139,7 +179,7 @@ function Crud() {
               value={user.username}
               onChange={(e) => setUser({ username: e.target.value })}
               error={!!error}
-              helperText={error}
+              // helperText={error}
               required
               fullWidth
               autoFocus
@@ -164,23 +204,23 @@ function Crud() {
             >
               Add User
             </Button>
-            {/* Show user details error state */}
-            {createError && (
-              <Alert severity="error" sx={{ my: 2 }}>
-                {createError}
-              </Alert>
-            )}
-            {addUserLoading && (
-              <Alert severity="info" sx={{ my: 2 }}>
-                Creating user...
-              </Alert>
-            )}
-            {success && (
-              <Alert severity="success" sx={{ my: 2 }}>
-                {success}
-              </Alert>
-            )}
           </Grid>
+          {/* Show user details error state */}
+          {isCreateResponseError && (
+            <Alert severity="error" sx={{ my: 2 }}>
+              {createResponseMessage}
+            </Alert>
+          )}
+          {isCreateResponseLoading && (
+            <Alert severity="info" sx={{ my: 2 }}>
+              Creating user...
+            </Alert>
+          )}
+          {isCreateResponseSuccess && (
+            <Alert severity="success" sx={{ my: 2 }}>
+              {createResponseMessage}
+            </Alert>
+          )}
         </Grid>
       </Box>
       <Box sx={{ maxWidth: 600, mx: "auto", mt: 4 }}>
@@ -189,7 +229,7 @@ function Crud() {
         </Typography>
 
         {/* Show loading state */}
-        {loading && (
+        {isLoading && (
           <Box sx={{ textAlign: "center", my: 4 }}>
             <CircularProgress />
             <Typography variant="body2" sx={{ mt: 2 }}>
@@ -199,25 +239,27 @@ function Crud() {
         )}
 
         {/* Show error state */}
-        {error && (
+        {isError && (
           <Alert severity="error" sx={{ my: 2 }}>
-            {error}
+            {isError}
           </Alert>
         )}
 
         {/* Show data when loaded */}
-        {!loading && !error && (!data?.users || data?.users?.length === 0) && (
-          <Typography
-            variant="body1"
-            color="text.secondary"
-            align="center"
-            sx={{ my: 2 }}
-          >
-            No users found.
-          </Typography>
-        )}
+        {!isLoading &&
+          !isError &&
+          (!data?.users || data?.users?.length === 0) && (
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              align="center"
+              sx={{ my: 2 }}
+            >
+              No users found.
+            </Typography>
+          )}
 
-        {!loading && !error && data && data.users.length > 0 && (
+        {!isLoading && !isError && data && data.users.length > 0 && (
           <Paper elevation={3} sx={{ p: 2 }}>
             <List>
               {data.users.map((user) => (
@@ -240,7 +282,7 @@ function Crud() {
                   {selectedUserId === user.id && (
                     <Box sx={{ pl: 3, pt: 2 }}>
                       {/* Show user details loading state */}
-                      {userLoading && (
+                      {isDetailFetchLoading && (
                         <Box sx={{ textAlign: "center", my: 2 }}>
                           <CircularProgress />
                           <Typography variant="body2" sx={{ mt: 2 }}>
@@ -250,9 +292,14 @@ function Crud() {
                       )}
 
                       {/* Show user details error state */}
-                      {userError && (
+                      {isDetailFetchError && (
                         <Alert severity="error" sx={{ my: 2 }}>
-                          {userError}
+                          {isDetailFetchErrorDetail?.status === 404
+                            ? "User not found. Please try selecting another user."
+                            : isDetailFetchErrorDetail?.status === 500
+                            ? "Server error occurred. Please try again later."
+                            : isDetailFetchErrorDetail?.message ||
+                              "An unexpected error occurred."}
                         </Alert>
                       )}
 
@@ -286,17 +333,17 @@ function Crud() {
                             variant="contained"
                             onClick={() => deleteHandler(userDetails.id)}
                           >
-                            {deleteLoading ? "Deleting...." : "Delete"}
+                            {isDeleteReponseLoading ? "Deleting...." : "Delete"}
                           </Button>
-                          {deleteError && (
+                          {isDeleteReponseError && (
                             <Alert severity="error" sx={{ my: 2 }}>
-                              {deleteError}
+                              {deleteReponseMessage}
                             </Alert>
                           )}
 
-                          {deleteSuccess && (
+                          {isDeleteReponseSuccess && (
                             <Alert severity="success" sx={{ my: 2 }}>
-                              {deleteSuccess}
+                              {deleteReponseMessage}
                             </Alert>
                           )}
                           {showUpdateForm && (
@@ -344,22 +391,22 @@ function Crud() {
                                       textTransform: "none",
                                     }}
                                   >
-                                    {updateLoading
+                                    {isUpdateLoading
                                       ? "Updating......"
                                       : "Update User"}
                                   </Button>
                                   {/* Show user details error state */}
                                 </Grid>
                               </Grid>
-                              {updateError && (
+                              {isUpdateError && (
                                 <Alert severity="error" sx={{ my: 2 }}>
-                                  {updateError}
+                                  {updateResponseMessage}
                                 </Alert>
                               )}
 
-                              {updateSuccess && (
+                              {isUpdateSuccess && (
                                 <Alert severity="success" sx={{ my: 2 }}>
-                                  {updateSuccess}
+                                  {updateResponseMessage}
                                 </Alert>
                               )}
                             </Box>

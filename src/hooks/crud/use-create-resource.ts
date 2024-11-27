@@ -1,45 +1,91 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
-type ApiResponse<T = any> = {
-  data: T;
+// Define types for the response and parameters
+type UserType=any;
+type ApiResponse= {
+  data: UserType;
   message?: string;
   status?: number;
 };
 
+type CreateResourceParams = {
+  urlEndpoint: string;
+  data: UserType;
+  token: string;
+};
+
+// Hook for creating a resource
 const useCreateResource = () => {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const baseUrl: string = import.meta.env.VITE_BASE_URL;
 
-  const baseUrl = import.meta.env.VITE_BASE_URL;
+  // Define state to handle messages, loading, and error status
+  const [createResponseMessage, setCreateResponseMessage] = useState<
+    string | null
+  >(null);
+  const [isCreateResponseError, setIsCreateResponseError] =
+    useState<boolean>(false);
+  const [isCreateResponseLoading, setIsCreateResponseLoading] =
+    useState<boolean>(false);
+  const [isCreateResponseSuccess, setIsCreateResponseSuccess] =
+    useState<boolean>(false);
 
-  const createResource = async (urlEndpoint: string, data: any,token:string) => {
-    setLoading(true);
+  // Mutation function for creating the resource
+  const createResource = async ({
+    urlEndpoint,
+    data,
+    token,
+  }: CreateResourceParams): Promise<ApiResponse> => {
+    setIsCreateResponseLoading(true); // Start loading before the request
     try {
       const response = await axios.post<ApiResponse>(
         `${baseUrl}/${urlEndpoint}`,
         data,
         {
           headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
         }
       );
-      if (response.status === 201) {
-        setSuccess(response.data.message || "Resource created successfully.");
-      }
-      return response.data; // Return data for further usage
+      return response.data;
     } catch (err: any) {
-      setError(err.message || "An error occurred while creating the resource.");
-      throw err; // Rethrow error to handle it in the calling component
+      throw err; // Throw error for handling in onError
     } finally {
-      setLoading(false);
+      setIsCreateResponseLoading(false); // Set loading to false after request is completed
     }
   };
 
-  return { createResource, loading, error, success };
+  // useMutation hook for creating resource with proper callbacks
+  const mutation = useMutation<ApiResponse, AxiosError, CreateResourceParams>({
+    mutationFn: createResource, // Pass createResource function
+    onMutate: () => {
+      console.log("Mutation started...");
+    },
+    onSuccess: (data) => {
+      setCreateResponseMessage(
+        data.message || "Resource created successfully!"
+      );
+      setIsCreateResponseError(false); // Reset error state on success
+      setIsCreateResponseSuccess(true);
+    },
+    onError: (error: AxiosError) => {
+      setCreateResponseMessage(error.message || "Error creating resource.");
+      setIsCreateResponseError(true); // Set error state on failure
+    },
+    onSettled: () => {
+      console.log("Mutation has finished.");
+    },
+  });
+
+  return {
+    ...mutation,
+    createResponseMessage,
+    isCreateResponseError,
+    isCreateResponseLoading,
+    isCreateResponseSuccess,
+  };
 };
 
 export default useCreateResource;
