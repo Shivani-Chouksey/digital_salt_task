@@ -18,7 +18,6 @@ import React, { useState } from "react";
 import usePaginatedFetch from "../../hooks/crud/use-paginated-fetch";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/root-reducer";
-import UserType from "../../utils/types/user-detail-type";
 
 function CurdPaginated() {
   const [page, setPage] = useState(1);
@@ -26,28 +25,14 @@ function CurdPaginated() {
   const skip = (page - 1) * limit;
   const token = useSelector((state: RootState) => state.usersList.token);
 
-  // Fetch data using the hook
-  // const { data, loading, error } = usePaginatedFetch<any>(
-  //   "users",
-  //   limit,
-  //   skip,
-  //   token
-  // );
-
-  //  const { data, error, isLoading, isError, isSuccess, refetch } = usePaginatedFetch(
-  //   "users", // Replace with your API endpoint
-  //   limit,
-  //   skip,
-  //   token
-  // );
-  const { data, isLoading, error } = usePaginatedFetch('users', {
+  const { data, isLoading, error } = usePaginatedFetch("users", {
     limit,
     skip,
-    token
+    token,
   });
 
-  console.log("data",data);
-  
+  console.log("data", data);
+
   const handlePageChange = (
     event: React.ChangeEvent<unknown>,
     value: number

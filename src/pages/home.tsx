@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import useFetchDataCustomHook from "../hooks/server/fetch-data-hook";
 import { useAppDispatch } from "../redux/store";
 import { setProducts } from "../redux/slices/product-slice";
+import { ErrorBoundary } from "react-error-boundary";
 
 // const getAllProducts = async (): Promise<any[]> => {
 //   const response = await fetch("https://dummyjson.com/products");
@@ -13,8 +14,8 @@ import { setProducts } from "../redux/slices/product-slice";
 // };
 
 function Home() {
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+
   // Queries
   // const {
   //   isLoading,
@@ -31,7 +32,7 @@ function Home() {
     url: "https://dummyjson.com/products",
     queryOptions: {
       select: (data) => data.products,
-    }
+    },
   });
 
   const {
@@ -43,54 +44,58 @@ function Home() {
     url: "https://dummyjson.com/products/categories",
     queryOptions: {
       select: (data) => data,
-    }
+    },
   });
 
-  const dispatch =useAppDispatch();
-  useEffect(()=>{
+  const dispatch = useAppDispatch();
+  useEffect(() => {
     dispatch(setProducts(products));
-  },[])
-  
-  if (productsLoading || categoriesLoading) return <div>Loading...</div>;
-  if (productsError) return <div>Error loading products: {productsError.message}</div>;
-  if (categoriesError) return <div>Error loading categories: {categoriesError.message}</div>;
+  }, []);
 
-  // const filteredProducts = selectedCategory 
-  // ? products?.filter((product: any) => product.category === selectedCategory) 
+  if (productsLoading || categoriesLoading) return <div>Loading...</div>;
+  if (productsError)
+    return <div>Error loading products: {productsError.message}</div>;
+  if (categoriesError)
+    return <div>Error loading categories: {categoriesError.message}</div>;
+
+  // const filteredProducts = selectedCategory
+  // ? products?.filter((product: any) => product.category === selectedCategory)
   // : products;
 
   return (
     <div>
-    <FormControl fullWidth>
-      <InputLabel id="category-select-label">Select Category</InputLabel>
-      <Select
-        labelId="category-select-label"
-        id="category-select"
-        value={selectedCategory}
-        label="Select Category"
-        onChange={(e) => setSelectedCategory(e.target.value)}
+      <FormControl fullWidth>
+        <InputLabel id="category-select-label">Select Category</InputLabel>
+        <Select
+          labelId="category-select-label"
+          id="category-select"
+          value={selectedCategory}
+          label="Select Category"
+          onChange={(e) => setSelectedCategory(e.target.value)}
+        >
+          <MenuItem value="">All Categories</MenuItem>
+          {categories?.map((category: any) => (
+            <MenuItem key={category} value={category?.slug}>
+              {category?.name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      <Grid
+        container
+        spacing={{ xs: 2, md: 3 }}
+        columns={{ xs: 4, sm: 8, md: 12 }}
       >
-        <MenuItem value="">All Categories</MenuItem>
-        {categories?.map((category: any) => (
-          <MenuItem key={category} value={category?.slug}>
-            {category?.name}
-          </MenuItem>
+        {products?.map((product: any) => (
+          <Grid item xs={2} sm={4} md={3} key={product.id}>
+            <ErrorBoundary fallback={<div>Something went wrong</div>}>
+              <ProductCard product={product} />
+            </ErrorBoundary>
+          </Grid>
         ))}
-      </Select>
-    </FormControl>
-    
-    <Grid
-      container
-      spacing={{ xs: 2, md: 3 }}
-      columns={{ xs: 4, sm: 8, md: 12 }}
-    >
-      {products?.map((product: any) => (
-        <Grid item xs={2} sm={4} md={3} key={product.id}>
-          <ProductCard product={product} />
-        </Grid>
-      ))}
-    </Grid>
-  </div>
+      </Grid>
+    </div>
   );
 }
 

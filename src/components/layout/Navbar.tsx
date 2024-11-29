@@ -70,6 +70,16 @@ function ResponsiveAppBar() {
           >
            LOGIN
           </Link>
+          <Link
+            to="/modular-form"
+            style={{
+              textDecoration: "none",
+              color: "white",
+              marginRight: "10px",
+            }}
+          >
+           Modular-Form
+          </Link>
 
           {/* Mobile menu icon */}
           <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>

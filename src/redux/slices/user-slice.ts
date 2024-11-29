@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { ContactFormData } from "../../utils/interfaces/contact-form-interface";
+import UserType from "../../utils/types/user-detail-type";
 
 type UserState = {
-  users: ContactFormData[]; // Replace `any` with the correct type for the user if known
+  users: UserType[]; // Replace `any` with the correct type for the user if known
   loading: boolean;
   token:string;
 };
@@ -17,7 +17,7 @@ const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
-    addUser(state, action: PayloadAction<ContactFormData>) {
+    addUser(state, action: PayloadAction<UserType>) {
       const newUser = { ...action.payload }; // Spread payload to create a new user object
       state.users.push(newUser); // Add the new user to the users array
     },
